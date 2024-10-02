@@ -10,14 +10,6 @@ AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 app = Flask(__name__)
 
-# sekret token
-AUTH_TOKEN = os.getenv('AUTH_TOKEN')
-
-# 2
-
-# 3 joba's idempotence
-import shutil
-
 # for receiving POST requests
 @app.route('/', methods=['POST'])
 # function to get data from API
@@ -34,18 +26,23 @@ def fetch_sales():
         shutil.rmtree(raw_dir)
     os.makedirs(raw_dir, exist_ok=True)
 
-    response = requests.get(
-        url='https://fake-api-vycpfa6oca-uc.a.run.app/sales',
-        params={'date': date, 'page': 1},
-        headers={'Authorization': AUTH_TOKEN},
-    )
+    page = 1
+    while True:
+        response = requests.get(
+            url='https://fake-api-vycpfa6oca-uc.a.run.app/sales',
+            params={'date': date, 'page': page},
+            headers={'Authorization': AUTH_TOKEN},
+        )
 
-    if response.status_code == 200:
-        with open(os.path.join(raw_dir, f'sales_{date}.json'), 'w') as file:
-            file.write(response.text)
+        if response.status_code == 200:
+            with open(os.path.join(raw_dir, f'sales_{date}_page_{page}.json'), 'w') as file:
+                file.write(response.text)
+            page += 1
+        else:
+            break
+
         return jsonify({"message": "Data saved successfully"}), 201
-    else:
-        return jsonify({"error": "Failed to fetch data"}), response.status_code
+
     
 if __name__ == '__main__':
     app.run(port=8081)
