@@ -2,60 +2,60 @@
 
 -- 1.Вивести кількість фільмів в кожній категорії. Результат відсортувати за спаданням.
 SELECT
-	category.name,
-	COUNT(film.film_id) AS film_count
-FROM film
-JOIN film_category ON film.film_id = film_category.film_id
-JOIN category ON film_category.category_id = category.category_id
-GROUP BY category.name
+	c.name,
+	COUNT(f.film_id) AS film_count
+FROM film f
+JOIN film_category fc ON f.film_id = fc.film_id
+JOIN category c ON fc.category_id = c.category_id
+GROUP BY c.name
 ORDER BY film_count DESC
 
 -- 2. Вивести 10 акторів, чиї фільми брали на прокат найбільше. Результат відсортувати за спаданням.
 SELECT
-	actor.first_name,
-	actor.last_name,
-	COUNT(rental.rental_id) AS rental_count
-FROM actor
-JOIN film_actor ON actor.actor_id = film_actor.actor_id
-JOIN film ON film_actor.film_id = film.film_id
-JOIN inventory ON film.film_id = inventory.film_id
-JOIN rental ON inventory.inventory_id = rental.inventory_id
-GROUP BY actor.first_name, actor.last_name
+	a.first_name,
+	a.last_name,
+	COUNT(r.rental_id) AS rental_count
+FROM actor a
+JOIN film_actor fa ON a.actor_id = fa.actor_id
+JOIN film f ON fa.film_id = f.film_id
+JOIN inventory i ON f.film_id = i.film_id
+JOIN rental r ON i.inventory_id = r.inventory_id
+GROUP BY a.first_name, a.last_name
 ORDER BY rental_count DESC
 LIMIT 10
 
 -- 3. Вивести категорія фільмів, на яку було витрачено найбільше грошей в прокаті
 SELECT
-	category.name,
-	SUM(payment.amount) AS total_amount
-FROM payment
-JOIN rental ON payment.rental_id = rental.rental_id
-JOIN inventory ON rental.inventory_id = inventory.inventory_id
-JOIN film ON inventory.film_id = film.film_id
-JOIN film_category ON film.film_id = film_category.film_id
-JOIN category ON film_category.category_id = category.category_id
-GROUP BY category.name
+	c.name,
+	SUM(p.amount) AS total_amount
+FROM payment p
+JOIN rental r ON p.rental_id = r.rental_id
+JOIN inventory i ON r.inventory_id = i.inventory_id
+JOIN film f ON i.film_id = f.film_id
+JOIN film_category fc ON f.film_id = fc.film_id
+JOIN category c ON fc.category_id = c.category_id
+GROUP BY c.name
 ORDER BY total_amount DESC
 LIMIT 1
 
 -- 4. Вивести назви фільмів, яких не має в inventory. Запит має бути без оператора IN
-SELECT title
-FROM film
-WHERE film_id NOT IN (SELECT film_id FROM inventory)
+SELECT f.title
+FROM film f
+LEFT JOIN inventory i ON f.film_id = i.film_id
+WHERE i.film_id IS NULL
 
 -- 5. Вивести топ 3 актори, які найбільше зʼявлялись в категорії фільмів “Children”.
 SELECT
-	actor.first_name,
-	actor.last_name,
-	COUNT(film.film_id) AS film_count
-FROM actor
-JOIN film_actor ON actor.actor_id = film_actor.actor_id
-JOIN film ON film_actor.film_id = film.film_id
-JOIN film_category ON film.film_id = film_category.film_id
-JOIN category ON film_category.category_id = category.category_id
-WHERE category.name = 'Children'
-GROUP BY actor.first_name, actor.last_name
+	a.first_name,
+	a.last_name,
+	COUNT(f.film_id) AS film_count
+FROM actor a
+JOIN film_actor fa ON a.actor_id = fa.actor_id
+JOIN film f ON fa.film_id = f.film_id
+JOIN film_category fc ON f.film_id = fc.film_id
+JOIN category c ON fc.category_id = c.category_id
+WHERE c.name = 'Children'
+GROUP BY a.first_name, a.last_name
 ORDER BY film_count DESC
 LIMIT 3
 
-SELECT * FROM 
